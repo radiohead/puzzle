@@ -1,6 +1,9 @@
-#include "puzzle_common.h"
-#include "puzzle.h"
-#include "pgetopt.h"
+extern "C" {
+  #include "puzzle_common.h"
+  #include "puzzle.h"
+}
+
+#include "pgetopt.hpp"
 
 typedef struct Opts_ {
     const char *file1;    
@@ -61,7 +64,6 @@ int parse_opts(Opts * const opts, PuzzleContext * context,
             break;
         case 'h':
             usage();
-            break;
             /* NOTREACHED */
         case 'H':
             puzzle_set_max_height(context, strtoul(poptarg, NULL, 10));
