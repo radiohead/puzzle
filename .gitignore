@@ -24,6 +24,7 @@ $RECYCLE.BIN/
 .DS_Store
 .AppleDouble
 .LSOverride
+.metadata
 
 # Icon must end with two \r
 Icon
@@ -42,6 +43,7 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+pictures
 
 # VS project files
 *.sdf
@@ -49,6 +51,12 @@ Temporary Items
 *.rc
 *.vcxproj.filters
 *.vcxproj.user
+*.vcxproj
+*.aps
+
+*.cproject
+*.project
+
 x64
 libpuzzle/x64
 puzzlediff/x64
