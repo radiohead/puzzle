@@ -65,16 +65,15 @@ int main(int argc, char *argv[])
     double d;
 	double start, end;
     
-	start = clock();
-
     puzzle_init_context(&context);
-
 	opts.fix_for_texts = 1;
 
     if(!parse_opts(&opts, &context, argc, argv))
         exit(EXIT_FAILURE);
 
-    puzzle_init_cvec(&context, &cvec1);
+	start = clock();
+
+	puzzle_init_cvec(&context, &cvec1);
     
 	if (puzzle_fill_cvec_from_file(&context, &cvec1, opts.inputFile) != 0) {
 		fprintf(stderr, "Unable to read [%s]\n", opts.inputFile);
@@ -98,18 +97,10 @@ int main(int argc, char *argv[])
 		puzzle_free_cvec(&context, &cvec2);
 	}
 
-	end = clock();
-
-	cout << "computation time :" << (double)(end - start) / CLOCKS_PER_SEC << endl;
-
     puzzle_free_cvec(&context, &cvec1);
     puzzle_free_context(&context);
-    if (opts.exit == 0) {
-        printf("%g\n", d);
-        return 0;
-    }
-    if (d >= opts.similarity_threshold) {
-        return 20;
-    }
-    return 10;
+	end = clock();
+
+	cout << "computation time: " << (double)(end - start) / CLOCKS_PER_SEC << endl;
+    return 0;
 }
