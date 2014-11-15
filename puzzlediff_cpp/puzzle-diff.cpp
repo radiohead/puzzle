@@ -45,7 +45,6 @@ int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv)
     {
 		//jump to file name
     	*argv ++;
-		printf("%s", *argv);
     	opts->outputFile = *argv++;
     }
 

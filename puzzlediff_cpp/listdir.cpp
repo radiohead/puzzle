@@ -2,7 +2,7 @@
 
 using namespace std;
 
-#ifdef defined _WIN32 || defined _WIN64
+#ifdef _WIN32 || _WIN64
 
 	#include <windows.h>
 
