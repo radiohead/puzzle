@@ -46,17 +46,20 @@ using namespace std;
 	#include <dirent.h>
 	#include <sys/types.h>
 	#include <errno.h>
+	#include <string.h>
 
 	void listDir(const char* dirName, vector<string> &files)
 	{
 		DIR *dp;
 		struct dirent *dirp;
 		if ((dp  = opendir(dirName)) == NULL) {
-		cout << "Error(" << errno << ") opening " << dirName << endl;
+			cout << "Error(" << errno << ") opening " << dirName << endl;
 		}
 
 		while ((dirp = readdir(dp)) != NULL) {
-		files.push_back(string(dirp->d_name));
+			if (strcmp(dirp->d_name, ".") && strcmp(dirp->d_name, "..")) {
+				files.push_back(string(dirp->d_name));
+			}
 		}
 		closedir(dp);
 	}

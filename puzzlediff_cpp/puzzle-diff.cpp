@@ -11,6 +11,7 @@ using namespace std;
 typedef struct Opts_ {
     const char *inputFile;
     const char *outputFile;
+    const char *dirName;
 	vector<string> directory;
     int exit;
 	int fix_for_texts;
@@ -48,8 +49,9 @@ int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv)
     }
 
     opts->inputFile = *argv++;
+    opts->dirName = *argv;
     // filling the vector inside opts struct with found files in directory
-	listDir(*argv, opts->directory);
+	listDir(opts->dirName, opts->directory);
     
     return 1;
 }
@@ -67,9 +69,6 @@ int main(int argc, char *argv[])
 
     if(!parse_opts(&opts, &context, argc, argv))
         exit(EXIT_FAILURE);
-    // Temp remove after
-	for (int i = 0; i < opts.directory.size(); i++)
-    	cout << opts.directory[i] << endl;
 
     puzzle_init_cvec(&context, &cvec1);
     
@@ -78,14 +77,20 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	const char *fileName;
+
 	for (int i = 0; i < opts.directory.size(); i++)
 	{
+		fileName = (opts.dirName + opts.directory[i]).c_str();
 		puzzle_init_cvec(&context, &cvec2);
-		if (puzzle_fill_cvec_from_file(&context, &cvec2, opts.directory[i].c_str())) {
-			fprintf(stderr, "Unable to read [%s]\n", opts.directory[i].c_str());
-			return 1;
+
+		if (puzzle_fill_cvec_from_file(&context, &cvec2, fileName)) {
+			cerr << "Unable to read " << opts.directory[i] << endl;
 		}
-		cout << puzzle_vector_normalized_distance(&context, &cvec1, &cvec2,opts.fix_for_texts);
+		else {
+			cout << puzzle_vector_normalized_distance(&context, &cvec1, &cvec2,opts.fix_for_texts) << endl;
+		}
+
 		puzzle_free_cvec(&context, &cvec2);
 	}
 
