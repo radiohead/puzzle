@@ -13,6 +13,7 @@ typedef struct Opts_ {
     const char *outputFile;
 	vector<string> directory;
     int exit;
+	int fix_for_texts;
     double similarity_threshold;
 } Opts;
 
@@ -60,26 +61,35 @@ int main(int argc, char *argv[])
     PuzzleCvec cvec1, cvec2;
     double d;
     
-    puzzle_init_context(&context);  
+    puzzle_init_context(&context);
+
+	opts.fix_for_texts = 1;
+
     if(!parse_opts(&opts, &context, argc, argv))
         exit(EXIT_FAILURE);
-    for (int i = 0; i < opts.directory.size(); i++)
+    // Temp remove after
+	for (int i = 0; i < opts.directory.size(); i++)
     	cout << opts.directory[i] << endl;
 
-    /*puzzle_init_cvec(&context, &cvec1);
-    puzzle_init_cvec(&context, &cvec2);
-    if (puzzle_fill_cvec_from_file(&context, &cvec1, opts.file1) != 0) {    
-        fprintf(stderr, "Unable to read [%s]\n", opts.file1);
-        return 1;
-    }
-    if (puzzle_fill_cvec_from_file(&context, &cvec2, opts.file2) != 0) {
-        fprintf(stderr, "Unable to read [%s]\n", opts.file2);
-        return 1;
-    }
-    d = puzzle_vector_normalized_distance(&context, &cvec1, &cvec2,
-                                          opts.fix_for_texts);
+    puzzle_init_cvec(&context, &cvec1);
+    
+	if (puzzle_fill_cvec_from_file(&context, &cvec1, opts.inputFile) != 0) {
+		fprintf(stderr, "Unable to read [%s]\n", opts.inputFile);
+		return 1;
+	}
+
+	for (int i = 0; i < opts.directory.size(); i++)
+	{
+		puzzle_init_cvec(&context, &cvec2);
+		if (puzzle_fill_cvec_from_file(&context, &cvec2, opts.directory[i].c_str())) {
+			fprintf(stderr, "Unable to read [%s]\n", opts.directory[i].c_str());
+			return 1;
+		}
+		cout << puzzle_vector_normalized_distance(&context, &cvec1, &cvec2,opts.fix_for_texts);
+		puzzle_free_cvec(&context, &cvec2);
+	}
+
     puzzle_free_cvec(&context, &cvec1);
-    puzzle_free_cvec(&context, &cvec2);
     puzzle_free_context(&context);
     if (opts.exit == 0) {
         printf("%g\n", d);
@@ -87,6 +97,6 @@ int main(int argc, char *argv[])
     }
     if (d >= opts.similarity_threshold) {
         return 20;
-    }*/
+    }
     return 10;
 }

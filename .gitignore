@@ -55,6 +55,9 @@ pictures
 *.vcxproj
 *.aps
 
+#johndoe files
+*.opensdf
+
 *.cproject
 *.project
 
