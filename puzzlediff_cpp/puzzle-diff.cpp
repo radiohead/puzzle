@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
 	puzzle_init_cvec(&context, &cvec1);
     
-	if (!puzzle_fill_cvec_from_file(&context, &cvec1, opts.inputFile)) {
+	if (puzzle_fill_cvec_from_file(&context, &cvec1, opts.inputFile)) {
 		fprintf(stderr, "Unable to read [%s]\n", opts.inputFile);
 		return 1;
 	}
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < opts.directory.size(); i++)
 	{
 		puzzle_init_cvec(&context, &cvec2);
-		if (!puzzle_fill_cvec_from_file(&context, &cvec2, opts.directory[i].c_str()))
+		if (puzzle_fill_cvec_from_file(&context, &cvec2, opts.directory[i].c_str()))
 			cerr << "Unable to read " << opts.directory[i] << endl;
 		else
 			cout << puzzle_vector_normalized_distance(&context, &cvec1, &cvec2,opts.fix_for_texts) << endl;
