@@ -2,7 +2,7 @@
 
 using namespace std;
 
-#ifdef defined _WIN32 || defined _WIN64
+#ifdef WIN32 || WIN64
 	#include <windows.h>
 
 	void listDir(const char* dirName, vector<string>& fnVec)
@@ -42,7 +42,7 @@ using namespace std;
 
 		fnVec.erase(fnVec.begin(), fnVec.begin() + 2);
 	}
-#elif defined __linux__ || TARGET_OS_MAC
+#elif defined __linux__ || __APPLE__
 	#include <dirent.h>
 	#include <sys/types.h>
 	#include <errno.h>
@@ -58,7 +58,7 @@ using namespace std;
 
 		while ((dirp = readdir(dp)) != NULL) {
 			if (strcmp(dirp->d_name, ".") && strcmp(dirp->d_name, "..")) {
-				files.push_back(string(dirp->d_name));
+				files.push_back(dirName+string(dirp->d_name));
 			}
 		}
 		closedir(dp);
