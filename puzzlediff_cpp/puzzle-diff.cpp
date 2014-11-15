@@ -2,7 +2,6 @@ extern "C" {
   #include "puzzle_common.h"
   #include "puzzle.h"
 }
-
 #include "pgetopt.hpp"
 #include "listdir.hpp"
 #include <iostream>
@@ -17,10 +16,9 @@ typedef struct Opts_ {
     double similarity_threshold;
 } Opts;
 
-void usage(void)
+void usage()
 {
     puts("Usage: puzzle-diff [-o <output file>] <image to compare against> <directory with images for comparison>");
-    exit(EXIT_SUCCESS);
 }
 
 int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv) 
@@ -32,29 +30,27 @@ int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv)
     opts->exit = 0;
     opts->similarity_threshold = PUZZLE_CVEC_SIMILARITY_THRESHOLD;
 
-    if (argc < 3 || argc > 5) {
+    if (argc < 3 || argc > 5) 
+    {
         usage();
-        return -1;
+        return 0;
     }
-
+    // jumping first call argument (program name)
     *argv++;
 
-    if (strcmp(argv[0], "-o") == 0) {
-    	*argv += 2;
-
-    	if (argv[0][0] == '\0') {
-    		*argv++;
-    	}
-
-    	opts->outputFile = *argv;
-        *argv++;
+    if (!strcmp(argv[0], "-o")) 
+    {
+		//jump to file name
+    	*argv ++;
+		printf("%s", *argv);
+    	opts->outputFile = *argv++;
     }
 
     opts->inputFile = *argv++;
     // filling the vector inside opts struct with found files in directory
 	listDir(*argv, opts->directory);
     
-    return 0;
+    return 1;
 }
 
 int main(int argc, char *argv[])
@@ -65,11 +61,10 @@ int main(int argc, char *argv[])
     double d;
     
     puzzle_init_context(&context);  
-    parse_opts(&opts, &context, argc, argv);
-
-    for (uint i = 0; i < opts.directory.size(); i++) {
+    if(!parse_opts(&opts, &context, argc, argv))
+        exit(EXIT_FAILURE);
+    for (int i = 0; i < opts.directory.size(); i++)
     	cout << opts.directory[i] << endl;
-    }
 
     /*puzzle_init_cvec(&context, &cvec1);
     puzzle_init_cvec(&context, &cvec2);

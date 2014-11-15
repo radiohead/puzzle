@@ -1,8 +1,8 @@
 #ifndef __PUZZLE_P_H__
 #define __PUZZLE_P_H__ 1
 
-//#include <math.h>
-#include <mathimf.h>
+#include <math.h>
+//#include <mathimf.h>
 #include <gd.h>
 
 typedef struct PuzzleView_ {

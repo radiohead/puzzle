@@ -2,15 +2,10 @@
 
 using namespace std;
 
-#ifdef OS_WINDOWS
+#ifdef defined _WIN32 || defined _WIN64
 	#include <windows.h>
 
-	/* Example on how listDir could be called */
-	//std::vector<std::string> fileNamesVector;
-	//listDir(opts.file2, fileNamesVector);	/* opts.file2 holds the directory name */
-	//std::cout << "Number of file names found in search directory: " << fileNamesVector.size << "\n\n";
-
-	void listDir(const char* dirName, std::vector<std::string>& fnVec)
+	void listDir(const char* dirName, vector<string>& fnVec)
 	{
 		size_t origsize = strlen(dirName) + 1;
 		size_t convertedChars = 0;
@@ -45,25 +40,28 @@ using namespace std;
 			fnVec.push_back(filedirstring);
 		}
 
-		fnVec.erase(fnVec.begin(),fnVec.begin()+2);
+		fnVec.erase(fnVec.begin(), fnVec.begin() + 2);
 	}
-#else
-	#include <iostream>
+#elif defined __linux__ || TARGET_OS_MAC
 	#include <dirent.h>
 	#include <sys/types.h>
 	#include <errno.h>
 
-	void listDir (const char* dirName, vector<string> &files)
+	void listDir(const char* dirName, vector<string> &files)
 	{
-	    DIR *dp;
-	    struct dirent *dirp;
-	    if ((dp  = opendir(dirName)) == NULL) {
-	    	cout << "Error(" << errno << ") opening " << dirName << endl;
-	    }
+		DIR *dp;
+		struct dirent *dirp;
+		if ((dp  = opendir(dirName)) == NULL) {
+		cout << "Error(" << errno << ") opening " << dirName << endl;
+		}
 
-	    while ((dirp = readdir(dp)) != NULL) {
-	        files.push_back(string(dirp->d_name));
-	    }
-	    closedir(dp);
+		while ((dirp = readdir(dp)) != NULL) {
+		files.push_back(string(dirp->d_name));
+		}
+		closedir(dp);
+	}
+#else
+	void listDir(const char* dirName, vector<string> &files)
+	{
 	}
 #endif
