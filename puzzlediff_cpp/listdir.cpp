@@ -2,7 +2,8 @@
 
 using namespace std;
 
-#ifdef WIN32 || WIN64
+#ifdef defined _WIN32 || defined _WIN64
+
 	#include <windows.h>
 
 	void listDir(const char* dirName, vector<string>& fnVec)
@@ -58,7 +59,7 @@ using namespace std;
 
 		while ((dirp = readdir(dp)) != NULL) {
 			if (strcmp(dirp->d_name, ".") && strcmp(dirp->d_name, "..")) {
-				files.push_back(dirName+string(dirp->d_name));
+				files.push_back(string(dirName) + string(dirp->d_name));
 			}
 		}
 		closedir(dp);
