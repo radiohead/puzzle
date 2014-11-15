@@ -25,7 +25,8 @@ $RECYCLE.BIN/
 .AppleDouble
 .LSOverride
 .metadata
-
+*.xcodeproj
+*.xcworkspace
 # Icon must end with two \r
 Icon
 
