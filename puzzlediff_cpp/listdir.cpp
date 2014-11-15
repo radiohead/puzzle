@@ -1,6 +1,8 @@
 #include <vector>
 #include <string>
 
+using namespace std;
+
 #ifdef OS_WINDOWS
 	#include <windows.h>
 
@@ -47,5 +49,22 @@
 		fnVec.erase(fnVec.begin(),fnVec.begin()+2);
 	}
 #else
-  //define it for a Unix machine
+	#include <iostream>
+	#include <dirent.h>
+	#include <sys/types.h>
+	#include <errno.h>
+
+	void listDir (const char* dirName, vector<string> &files)
+	{
+	    DIR *dp;
+	    struct dirent *dirp;
+	    if ((dp  = opendir(dirName)) == NULL) {
+	    	cout << "Error(" << errno << ") opening " << dirName << endl;
+	    }
+
+	    while ((dirp = readdir(dp)) != NULL) {
+	        files.push_back(string(dirp->d_name));
+	    }
+	    closedir(dp);
+	}
 #endif
