@@ -4,10 +4,13 @@ extern "C" {
 }
 
 #include "pgetopt.hpp"
+#include "listdir.hpp"
+
+using namespace std;
 
 typedef struct Opts_ {
     const char *file1;    
-    const char *file2;
+	vector<string> directory;
     int fix_for_texts;
     int exit;
     double similarity_threshold;
@@ -36,8 +39,8 @@ void usage(void)
     exit(EXIT_SUCCESS);
 }
 
-int parse_opts(Opts * const opts, PuzzleContext * context,
-               int argc, char **argv) {
+int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv) 
+{
     int opt;
     extern char *poptarg;
     extern int poptind;
@@ -94,7 +97,8 @@ int parse_opts(Opts * const opts, PuzzleContext * context,
         usage();
     }
     opts->file1 = *argv++;
-    opts->file2 = *argv;
+    // filling the vector inside opts struct with found files in directory
+	listDir(*argv, opts->directory);
     
     return 0;
 }
@@ -106,9 +110,11 @@ int main(int argc, char *argv[])
     PuzzleCvec cvec1, cvec2;
     double d;
     
-    puzzle_init_context(&context);    
+    puzzle_init_context(&context);  
     parse_opts(&opts, &context, argc, argv);
-    puzzle_init_cvec(&context, &cvec1);
+
+
+    /*puzzle_init_cvec(&context, &cvec1);
     puzzle_init_cvec(&context, &cvec2);
     if (puzzle_fill_cvec_from_file(&context, &cvec1, opts.file1) != 0) {    
         fprintf(stderr, "Unable to read [%s]\n", opts.file1);
@@ -129,6 +135,6 @@ int main(int argc, char *argv[])
     }
     if (d >= opts.similarity_threshold) {
         return 20;
-    }
+    }*/
     return 10;
 }
