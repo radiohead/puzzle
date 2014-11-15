@@ -1,6 +1,7 @@
 extern "C" {
   #include "puzzle_common.h"
   #include "puzzle.h"
+  #include <time.h>
 }
 #include "pgetopt.hpp"
 #include "listdir.hpp"
@@ -62,7 +63,10 @@ int main(int argc, char *argv[])
     PuzzleContext context;
     PuzzleCvec cvec1, cvec2;
     double d;
+	double start, end;
     
+	start = clock();
+
     puzzle_init_context(&context);
 
 	opts.fix_for_texts = 1;
@@ -93,6 +97,10 @@ int main(int argc, char *argv[])
 
 		puzzle_free_cvec(&context, &cvec2);
 	}
+
+	end = clock();
+
+	cout << "computation time :" << end - start << endl;
 
     puzzle_free_cvec(&context, &cvec1);
     puzzle_free_context(&context);
