@@ -59,7 +59,6 @@ int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv)
 
 int main(int argc, char *argv[])
 {
-    cout << "Test" << endl;
     Opts opts;
     PuzzleContext context;
     PuzzleCvec cvec1, cvec2;
