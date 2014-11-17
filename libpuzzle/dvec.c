@@ -2,6 +2,7 @@
 #include "puzzle_p.h"
 #include "puzzle.h"
 #include "globals.h"
+#include "advisor-annotate.h"
 
 static void puzzle_init_view(PuzzleView * const view)
 {
@@ -125,7 +126,10 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,
         puzzle_err_bug(__FILE__, __LINE__);
     }
     chunk_n = chunk_n1;
+
+	ANNOTATE_SITE_BEGIN(calculateContrast);
     do {
+		ANNOTATE_ITERATION_TASK(calculateChunkContrast);
         chunk_contrast = 0.0;
         chunk_o = chunk_o1;
         do {
@@ -141,6 +145,8 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,
         total_contrast += chunk_contrast;
         maptr += nmaptrinc;
     } while (chunk_n-- != 0U);
+	ANNOTATE_SITE_END();
+
     barrier_contrast =
         total_contrast * context->puzzle_contrast_barrier_for_cropping;
     total_contrast = 0.0;
@@ -250,7 +256,10 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
     maptr = view->map;
     x = x1;
     if (gdImageTrueColor(gdimage) != 0) {
+
+		ANNOTATE_SITE_BEGIN(getPixelMap);
         do {
+			ANNOTATE_ITERATION_TASK(getPixelRow);
             y = y1;
             do {
                 pixel = gdImageGetTrueColorPixel(gdimage, (int) x, (int) y);
@@ -260,6 +269,7 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
                       gdTrueColorGetBlue(pixel) * 28 + 128) / 256);
             } while (y-- != y0);
         } while (x-- != x0);
+		ANNOTATE_SITE_END();
     } else {
         do {
             y = y1;
