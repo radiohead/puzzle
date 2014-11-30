@@ -6,6 +6,7 @@ extern "C" {
 
 #include "pgetopt.hpp"
 #include "listdir.hpp"
+#include "cilk/cilk.h"
 #include <iostream>
 #include <map>
 
@@ -52,7 +53,7 @@ int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv)
     opts->inputFile = *argv++;
     opts->dirName = *argv;
     // filling the vector inside opts struct with found files in directory
-  listDir(opts->dirName, opts->directory);
+    listDir(opts->dirName, opts->directory);
 
     return 1;
 }
@@ -95,7 +96,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	for (unsigned int i = 0; i < opts.directory.size(); ++i) {
+	cilk_for (unsigned int i = 0; i < opts.directory.size(); ++i) {
 		std::string file_name = opts.directory[i];
 		std::pair<double, std::string> comparison_result = compare_image_files(puzzle_context, original_vector, comparison_vector, file_name);
 	    results.insert(comparison_result);
