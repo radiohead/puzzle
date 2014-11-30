@@ -88,44 +88,43 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-  puzzle_init_cvec(&puzzle_context, &original_vector);
+	puzzle_init_cvec(&puzzle_context, &original_vector);
 
-  if (puzzle_fill_cvec_from_file(&puzzle_context, &original_vector, opts.inputFile)) {
-    cerr << "Unable to read input file: " << opts.inputFile << endl;
-    exit(EXIT_FAILURE);
-  }
+	if (puzzle_fill_cvec_from_file(&puzzle_context, &original_vector, opts.inputFile)) {
+		cerr << "Unable to read input file: " << opts.inputFile << endl;
+		exit(EXIT_FAILURE);
+	}
 
-  for (unsigned int i = 0; i < opts.directory.size(); ++i) {
-    std::string file_name = opts.directory[i];
-    std::pair<double, std::string> comparison_result = compare_image_files(puzzle_context, original_vector, comparison_vector, file_name);
+	for (unsigned int i = 0; i < opts.directory.size(); ++i) {
+		std::string file_name = opts.directory[i];
+		std::pair<double, std::string> comparison_result = compare_image_files(puzzle_context, original_vector, comparison_vector, file_name);
+	    results.insert(comparison_result);
+	}
 
-    results.insert(comparison_result);
-  }
+	puzzle_free_cvec(&puzzle_context, &original_vector);
+	puzzle_free_context(&puzzle_context);
 
-    puzzle_free_cvec(&puzzle_context, &original_vector);
-    puzzle_free_context(&puzzle_context);
+	unsigned int count = 0;
+	std::multimap <double, std::string>::iterator it;
+	cout << endl << "*** Pictures found to be similar to "<< opts.inputFile << " ***" << endl;
 
-    unsigned int count = 0;
-    std::multimap <double, std::string>::iterator it;
-    cout << endl << "*** Pictures found to be similar to "<< opts.inputFile << " ***" << endl;
+	for (it = results.begin(); it != results.end(); ++it) {
+	  if (count > 10) break;
+	  cout << (*it).first << ' ' << (*it).second << endl;
+	  ++count;
+	}
 
-    for (it = results.begin(); it != results.end(); ++it) {
-      if (count > 10) break;
-      cout << (*it).first << ' ' << (*it).second << endl;
-      ++count;
-    }
+	count = 0;
+	cout << endl << "*** Pictures found to be identical/close resemblance to "<< opts.inputFile << " ***" << endl;
 
-    count = 0;
-    cout << endl << "*** Pictures found to be identical/close resemblance to "<< opts.inputFile << " ***" << endl;
+	for (it = results.begin(); it != results.end(); ++it) {
+	  if (count > 10) break;
 
-    for (it = results.begin(); it != results.end(); ++it) {
-      if (count > 10) break;
+	  if ((*it).first <= 0.12) {
+		cout << (*it).first << ' ' << (*it).second << endl;
+		++count;
+	  }
+	}
 
-      if ((*it).first <= 0.12) {
-        cout << (*it).first << ' ' << (*it).second << endl;
-        ++count;
-      }
-    }
-
-    return 0;
+	return 0;
 }
