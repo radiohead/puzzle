@@ -5,6 +5,7 @@ extern "C" {
 }
 #include "pgetopt.hpp"
 #include "listdir.hpp"
+#include "advisor-annotate.h"
 #include <iostream>
 
 using namespace std;
@@ -79,8 +80,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	ANNOTATE_SITE_BEGIN(walkDir);
 	for (int i = 0; i < opts.directory.size(); i++)
 	{
+		ANNOTATE_ITERATION_TASK(comparePictures);
 		puzzle_init_cvec(&context, &cvec2);
 		if (puzzle_fill_cvec_from_file(&context, &cvec2, opts.directory[i].c_str()))
 			cerr << "Unable to read " << opts.directory[i] << endl;
@@ -88,6 +91,7 @@ int main(int argc, char *argv[])
 			cout << puzzle_vector_normalized_distance(&context, &cvec1, &cvec2,opts.fix_for_texts) << endl;
 		puzzle_free_cvec(&context, &cvec2);
 	}
+	ANNOTATE_SITE_END();
 
     puzzle_free_cvec(&context, &cvec1);
     puzzle_free_context(&context);
