@@ -36,4 +36,6 @@
 extern int errno;
 #endif
 
+#include "cilk/cilk.h"
+
 #endif

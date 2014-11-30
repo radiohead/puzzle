@@ -33,6 +33,8 @@ typedef struct PuzzleImageType_ {
 # define SIZE_MAX ((size_t) -1)
 #endif
 
+#define IMAGE_ROWS_PER_THREAD 10.0
+
 #define PUZZLE_DEFAULT_LAMBDAS 9
 #define PUZZLE_DEFAULT_MAX_WIDTH  6000
 #define PUZZLE_DEFAULT_MAX_HEIGHT 6000

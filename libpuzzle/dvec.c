@@ -271,17 +271,43 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
     }
     maptr = view->map;
     x = x1;
+
+    unsigned char** image_buffer;
+    unsigned int counter = 0;
+    unsigned int chunk_counter = 0;
+    unsigned int chunk_size = IMAGE_ROWS_PER_THREAD * view->height;
+    unsigned int buffer_size = ceil(view->width / IMAGE_ROWS_PER_THREAD);
+
+    if ((image_buffer = (unsigned char**) calloc((size_t) buffer_size, (size_t) (chunk_size * sizeof(unsigned char)))) == NULL) {
+    	return -1;
+    }
+
     if (gdImageTrueColor(gdimage) != 0) {
-		ANNOTATE_SITE_BEGIN(getPixelMap);
-        do {
-        	ANNOTATE_ITERATION_TASK(getPixelRow);
-            t1 = ((int)x - 10) < 0 ? 0 : (x - 10);
+		do {
+            t1 = ((int)x - IMAGE_ROWS_PER_THREAD) < 0 ? 0 : (x - IMAGE_ROWS_PER_THREAD);
 
-			puzzle_getrow_from_gdimage(x, t1, y1, pixel, gdimage, maptr);
+            if ((image_buffer[counter] = (unsigned char*) calloc((size_t) chunk_size, (size_t) sizeof(unsigned char))) == NULL) {
+            	return -1;
+            }
 
-            x = ((int)x - 10) < 0 ? 0 : (x - 10);
+			cilk_spawn puzzle_getrow_from_gdimage(x, t1, y1, pixel, gdimage, image_buffer[counter]);
+            x = ((int)x - IMAGE_ROWS_PER_THREAD) < 0 ? 0 : (x - IMAGE_ROWS_PER_THREAD);
+            ++counter;
         } while (x != x0);
-		ANNOTATE_SITE_END();
+		cilk_sync;
+
+	    size_t map_counter = 1;
+	    for (counter = 0; counter < buffer_size; ++counter) {
+	      for (chunk_counter = 0; chunk_counter < chunk_size; ++chunk_counter) {
+	        if (map_counter == view->sizeof_map) break;
+	        *maptr = image_buffer[counter][chunk_counter];
+	        map_counter++;
+	        maptr++;
+	      }
+
+	      free(image_buffer[counter]);
+	    }
+	    free(image_buffer);
     } else {
         do {
             y = y1;
