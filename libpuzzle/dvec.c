@@ -218,13 +218,29 @@ static int puzzle_autocrop_view(PuzzleContext * context,
     return 0;
 }
 
+void puzzle_getrow_from_gdimage(unsigned int x, unsigned int t1, unsigned int y1, int pixel, gdImagePtr gdimage, unsigned char* maptr)
+{
+	unsigned int t, y;
+	const unsigned int y0 = 0U;
+
+	for (t = x; t > t1; t--) {
+		y = y1;
+		do {
+			pixel = gdImageGetTrueColorPixel(gdimage, (int) t, (int) y);
+			*maptr++ = (unsigned char) ((gdTrueColorGetRed(pixel) * 77
+					+ gdTrueColorGetGreen(pixel) * 151
+					+ gdTrueColorGetBlue(pixel) * 28 + 128) / 256);
+		} while (y-- != y0);
+	}
+}
+
 static int puzzle_getview_from_gdimage(PuzzleContext * const context,
                                        PuzzleView * const view,
                                        gdImagePtr gdimage)
 {
-    unsigned int x, y;
+    unsigned int x, y, t;
     const unsigned int x0 = 0U, y0 = 0U;
-    unsigned int x1, y1;
+    unsigned int x1, y1, t1;
     unsigned char *maptr;
     int pixel;
     
@@ -256,19 +272,15 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
     maptr = view->map;
     x = x1;
     if (gdImageTrueColor(gdimage) != 0) {
-
 		ANNOTATE_SITE_BEGIN(getPixelMap);
         do {
-			ANNOTATE_ITERATION_TASK(getPixelRow);
-            y = y1;
-            do {
-                pixel = gdImageGetTrueColorPixel(gdimage, (int) x, (int) y);
-                *maptr++ = (unsigned char)
-                    ((gdTrueColorGetRed(pixel) * 77 +
-                      gdTrueColorGetGreen(pixel) * 151 +
-                      gdTrueColorGetBlue(pixel) * 28 + 128) / 256);
-            } while (y-- != y0);
-        } while (x-- != x0);
+        	ANNOTATE_ITERATION_TASK(getPixelRow);
+            t1 = ((int)x - 10) < 0 ? 0 : (x - 10);
+
+			puzzle_getrow_from_gdimage(x, t1, y1, pixel, gdimage, maptr);
+
+            x = ((int)x - 10) < 0 ? 0 : (x - 10);
+        } while (x != x0);
 		ANNOTATE_SITE_END();
     } else {
         do {
