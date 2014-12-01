@@ -243,7 +243,15 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
     unsigned int x1, y1, t1;
     unsigned char *maptr;
     int pixel;
-    
+
+	unsigned char** image_buffer;
+	unsigned int counter = 0;
+	unsigned int chunk_counter = 0;
+	unsigned int chunk_size;
+	unsigned int buffer_size;
+
+	size_t map_counter = 1;
+
     view->map = NULL;    
     view->width = (unsigned int) gdImageSX(gdimage);
     view->height = (unsigned int) gdImageSY(gdimage);
@@ -272,17 +280,14 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
     maptr = view->map;
     x = x1;
 
-    unsigned char** image_buffer;
-    unsigned int counter = 0;
-    unsigned int chunk_counter = 0;
-    unsigned int chunk_size = IMAGE_ROWS_PER_THREAD * view->height;
-    unsigned int buffer_size = ceil(view->width / IMAGE_ROWS_PER_THREAD);
-
-    if ((image_buffer = (unsigned char**) calloc((size_t) buffer_size, (size_t) (chunk_size * sizeof(unsigned char)))) == NULL) {
-    	return -1;
-    }
-
     if (gdImageTrueColor(gdimage) != 0) {
+		chunk_size = IMAGE_ROWS_PER_THREAD * view->height;
+		buffer_size = ceil(view->width / IMAGE_ROWS_PER_THREAD);
+
+		if ((image_buffer = (unsigned char**)calloc((size_t)buffer_size, (size_t)(chunk_size * sizeof(unsigned char)))) == NULL) {
+			return -1;
+		}
+
 		do {
             t1 = ((int)x - IMAGE_ROWS_PER_THREAD) < 0 ? 0 : (x - IMAGE_ROWS_PER_THREAD);
 
@@ -296,7 +301,6 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
         } while (x != x0);
 		cilk_sync;
 
-	    size_t map_counter = 1;
 	    for (counter = 0; counter < buffer_size; ++counter) {
 	      for (chunk_counter = 0; chunk_counter < chunk_size; ++chunk_counter) {
 	        if (map_counter == view->sizeof_map) break;
