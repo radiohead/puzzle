@@ -3,7 +3,7 @@
 #include "puzzle.h"
 #include "globals.h"
 #include "dvec.h"
-#include <cilk\cilk.h>
+#include "cilk/cilk.h"
 
 static void puzzle_init_view(PuzzleView * const view)
 {
@@ -121,37 +121,22 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,PuzzleView * const
     if (INT_MAX / axisn < axiso) {
         puzzle_err_bug(__FILE__, __LINE__);
     }
-    /*chunk_n = chunk_n1;
-    do {
-        chunk_contrast = 0.0;
-        chunk_o = chunk_o1;
-        do {
-            level = *maptr;
-            if (previous_level > level) {
-                chunk_contrast += (double) (previous_level - level);
-            } else {
-                chunk_contrast += (double) (level - previous_level);
-            }
-            maptr += omaptrinc;
-        } while (chunk_o-- != 0U);
-        chunk_contrasts[chunk_n] = chunk_contrast;
-        total_contrast += chunk_contrast;
-        maptr += nmaptrinc;
-    } while (chunk_n-- != 0U);*/
 
-	// for loops 
-	for(chunk_n=chunk_n1;chunk_n != 0U; chunk_n--)
-    {
+	// for loops
+	for (chunk_n = chunk_n1; chunk_n != 0U; chunk_n--) {
     	chunk_contrast = 0.0;
-        for(chunk_o=chunk_o1;chunk_o!=0U;chunk_o1--)
-        {
-        	level = *maptr;
-            if (previous_level > level)
-                chunk_contrast += (double) (previous_level - level);
-            else
-                chunk_contrast += (double) (level - previous_level);
-            maptr += omaptrinc;
-        }
+
+		chunk_o = chunk_o1;
+		do {
+			level = *maptr;
+			if (previous_level > level) {
+				chunk_contrast += (double) (previous_level - level);
+			} else {
+				chunk_contrast += (double) (level - previous_level);
+			}
+			maptr += omaptrinc;
+		} while (chunk_o-- != 0U);
+
         chunk_contrasts[chunk_n] = chunk_contrast;
         total_contrast += chunk_contrast;
         maptr += nmaptrinc;
