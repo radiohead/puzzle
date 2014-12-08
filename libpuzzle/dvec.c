@@ -2,7 +2,8 @@
 #include "puzzle_p.h"
 #include "puzzle.h"
 #include "globals.h"
-#include "advisor-annotate.h"
+#include "dvec.h"
+#include <cilk\cilk.h>
 
 static void puzzle_init_view(PuzzleView * const view)
 {
@@ -87,13 +88,8 @@ static PuzzleImageTypeCode puzzle_get_image_type_from_fp(FILE * const fp)
     return ret;
 }
 
-static int puzzle_autocrop_axis(PuzzleContext * const context,
-                                PuzzleView * const view,
-                                unsigned int * const crop0,
-                                unsigned int * const crop1,
-                                const unsigned int axisn,
-                                const unsigned int axiso,
-                                const int omaptrinc, const int nmaptrinc)
+static int puzzle_autocrop_axis(PuzzleContext * const context,PuzzleView * const view,unsigned int * const crop0,unsigned int * const crop1,
+								const unsigned int axisn,const unsigned int axiso,const int omaptrinc, const int nmaptrinc)
 {
     double *chunk_contrasts;
     size_t sizeof_chunk_contrasts;
@@ -125,11 +121,8 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,
     if (INT_MAX / axisn < axiso) {
         puzzle_err_bug(__FILE__, __LINE__);
     }
-    chunk_n = chunk_n1;
-
-	ANNOTATE_SITE_BEGIN(calculateContrast);
+    /*chunk_n = chunk_n1;
     do {
-		ANNOTATE_ITERATION_TASK(calculateChunkContrast);
         chunk_contrast = 0.0;
         chunk_o = chunk_o1;
         do {
@@ -144,8 +137,25 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,
         chunk_contrasts[chunk_n] = chunk_contrast;
         total_contrast += chunk_contrast;
         maptr += nmaptrinc;
-    } while (chunk_n-- != 0U);
-	ANNOTATE_SITE_END();
+    } while (chunk_n-- != 0U);*/
+
+	// for loops 
+	for(chunk_n=chunk_n1;chunk_n != 0U; chunk_n--)
+    {
+    	chunk_contrast = 0.0;
+        for(chunk_o=chunk_o1;chunk_o!=0U;chunk_o1--)
+        {
+        	level = *maptr;
+            if (previous_level > level)
+                chunk_contrast += (double) (previous_level - level);
+            else
+                chunk_contrast += (double) (level - previous_level);
+            maptr += omaptrinc;
+        }
+        chunk_contrasts[chunk_n] = chunk_contrast;
+        total_contrast += chunk_contrast;
+        maptr += nmaptrinc;
+    }
 
     barrier_contrast =
         total_contrast * context->puzzle_contrast_barrier_for_cropping;
@@ -180,8 +190,7 @@ static int puzzle_autocrop_axis(PuzzleContext * const context,
     return 0;
 }
 
-static int puzzle_autocrop_view(PuzzleContext * context,
-                                PuzzleView * const view)
+static int puzzle_autocrop_view(PuzzleContext * context,PuzzleView * const view)
 {
     unsigned int cropx0, cropx1;
     unsigned int cropy0, cropy1;
@@ -234,9 +243,7 @@ void puzzle_getrow_from_gdimage(unsigned int x, unsigned int t1, unsigned int y1
 	}
 }
 
-static int puzzle_getview_from_gdimage(PuzzleContext * const context,
-                                       PuzzleView * const view,
-                                       gdImagePtr gdimage)
+static int puzzle_getview_from_gdimage(PuzzleContext * const context,PuzzleView * const view,gdImagePtr gdimage)
 {
     unsigned int x, y, t;
     const unsigned int x0 = 0U, y0 = 0U;
@@ -271,7 +278,7 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
     if (view->width <= 0U || view->height <= 0U) {
         puzzle_err_bug(__FILE__, __LINE__);
     }
-    if ((view->map = calloc(view->sizeof_map, sizeof *view->map)) == NULL) {
+    if ((view->map = (unsigned char*) calloc(view->sizeof_map, sizeof *view->map)) == NULL) {
         return -1;
     }
     if (x1 > INT_MAX || y1 > INT_MAX) { /* GD uses "int" for coordinates */
@@ -327,8 +334,7 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,
     return 0;
 }
 
-static double puzzle_softedgedlvl(const PuzzleView * const view,
-                                  const unsigned int x, const unsigned int y)
+static double puzzle_softedgedlvl(const PuzzleView * const view,const unsigned int x, const unsigned int y)
 {
     unsigned int lvl = 0U;
     unsigned int ax, ay;
@@ -366,9 +372,7 @@ static double puzzle_softedgedlvl(const PuzzleView * const view,
     return (double) lvl / (double) count;
 }
 
-static double puzzle_get_avglvl(const PuzzleView * const view,
-                                const unsigned int x, const unsigned int y,
-                                const unsigned int width,
+static double puzzle_get_avglvl(const PuzzleView * const view,const unsigned int x, const unsigned int y,const unsigned int width,
                                 const unsigned int height)
 {
     double lvl = 0.0;
@@ -399,9 +403,7 @@ static double puzzle_get_avglvl(const PuzzleView * const view,
     return lvl / (double) (width * height);
 }
 
-static int puzzle_fill_avglgls(PuzzleContext * const context,
-                               PuzzleAvgLvls * const avglvls,
-                               const PuzzleView * const view,
+static int puzzle_fill_avglgls(PuzzleContext * const context,PuzzleAvgLvls * const avglvls,const PuzzleView * const view,
                                const unsigned int lambdas)
 {
     double width = (double) view->width;
@@ -478,11 +480,8 @@ static int puzzle_fill_avglgls(PuzzleContext * const context,
     return 0;
 }
 
-static unsigned int puzzle_add_neighbors(double ** const vecur,
-                                         const unsigned int max_neighbors,
-                                         const PuzzleAvgLvls * const avglvls,
-                                         const unsigned int lx,
-                                         const unsigned int ly)
+static unsigned int puzzle_add_neighbors(double ** const vecur,const unsigned int max_neighbors,const PuzzleAvgLvls * const avglvls,
+                                         const unsigned int lx,const unsigned int ly)
 {
     unsigned int ax, ay;
     unsigned int xlimit, ylimit;
@@ -530,8 +529,7 @@ static unsigned int puzzle_add_neighbors(double ** const vecur,
     return neighbors;
 }
 
-static int puzzle_fill_dvec(PuzzleDvec * const dvec,
-                            const PuzzleAvgLvls * const avglvls)
+static int puzzle_fill_dvec(PuzzleDvec * const dvec,const PuzzleAvgLvls * const avglvls)
 {
     unsigned int lambdas;
     unsigned int lx, ly;
@@ -562,9 +560,7 @@ static int puzzle_fill_dvec(PuzzleDvec * const dvec,
     return 0;
 }
 
-int puzzle_fill_dvec_from_file(PuzzleContext * const context,
-                               PuzzleDvec * const dvec,
-                               const char * const file)
+int puzzle_fill_dvec_from_file(PuzzleContext * const context,PuzzleDvec * const dvec,const char * const file)
 {
     gdImagePtr gdimage = NULL;
     FILE *fp;
@@ -621,8 +617,7 @@ int puzzle_fill_dvec_from_file(PuzzleContext * const context,
     return ret;
 }
 
-int puzzle_dump_dvec(PuzzleContext * const context,
-                     const PuzzleDvec * const dvec)
+int puzzle_dump_dvec(PuzzleContext * const context,const PuzzleDvec * const dvec)
 {
     size_t s = dvec->sizeof_compressed_vec;
     const double *vecptr = dvec->vec;

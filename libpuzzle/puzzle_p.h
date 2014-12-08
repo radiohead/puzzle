@@ -1,8 +1,8 @@
 #ifndef __PUZZLE_P_H__
 #define __PUZZLE_P_H__ 1
 
-#include <math.h>
-//#include <mathimf.h>
+//#include <math.h>
+#include <mathimf.h>
 #include <gd.h>
 
 typedef struct PuzzleView_ {
@@ -32,8 +32,6 @@ typedef struct PuzzleImageType_ {
 #ifndef SIZE_MAX
 # define SIZE_MAX ((size_t) -1)
 #endif
-
-#define IMAGE_ROWS_PER_THREAD 10.0
 
 #define PUZZLE_DEFAULT_LAMBDAS 9
 #define PUZZLE_DEFAULT_MAX_WIDTH  6000
