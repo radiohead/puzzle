@@ -236,6 +236,8 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,PuzzleView 
     unsigned char *maptr;
     int pixel;
 
+    double image_rows_per_thread = 0;
+
 	unsigned char** image_buffer;
 	unsigned int counter = 0;
 	unsigned int chunk_counter = 0;
@@ -269,26 +271,28 @@ static int puzzle_getview_from_gdimage(PuzzleContext * const context,PuzzleView 
     if (x1 > INT_MAX || y1 > INT_MAX) { /* GD uses "int" for coordinates */
         puzzle_err_bug(__FILE__, __LINE__);
     }
+
+    image_rows_per_thread = view->width / THREADS_PER_IMAGE;
     maptr = view->map;
     x = x1;
 
     if (gdImageTrueColor(gdimage) != 0) {
-		chunk_size = IMAGE_ROWS_PER_THREAD * view->height;
-		buffer_size = ceil(view->width / IMAGE_ROWS_PER_THREAD);
+		chunk_size = image_rows_per_thread * view->height;
+		buffer_size = ceil(view->width / image_rows_per_thread);
 
 		if ((image_buffer = (unsigned char**)calloc((size_t)buffer_size, (size_t)(chunk_size * sizeof(unsigned char)))) == NULL) {
 			return -1;
 		}
 
 		do {
-            t1 = ((int)x - IMAGE_ROWS_PER_THREAD) < 0 ? 0 : (x - IMAGE_ROWS_PER_THREAD);
+            t1 = ((int)x - image_rows_per_thread) < 0 ? 0 : (x - image_rows_per_thread);
 
             if ((image_buffer[counter] = (unsigned char*) calloc((size_t) chunk_size, (size_t) sizeof(unsigned char))) == NULL) {
             	return -1;
             }
 
 			cilk_spawn puzzle_getrow_from_gdimage(x, t1, y1, pixel, gdimage, image_buffer[counter]);
-            x = ((int)x - IMAGE_ROWS_PER_THREAD) < 0 ? 0 : (x - IMAGE_ROWS_PER_THREAD);
+            x = ((int)x - image_rows_per_thread) < 0 ? 0 : (x - image_rows_per_thread);
             ++counter;
         } while (x != x0);
 		cilk_sync;

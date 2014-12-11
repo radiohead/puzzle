@@ -43,11 +43,13 @@ int parse_opts(Opts * const opts, PuzzleContext * context,int argc, char **argv)
     // jumping first call argument (program name)
     *argv++;
 
-    if (!strcmp(argv[0], "-o"))
-    {
-    //jump to file name
-      *argv ++;
-      opts->outputFile = *argv++;
+    if (!strcmp(argv[0], "-o")) {
+    	// jump to file name
+    	*argv ++;
+    	opts->outputFile = *argv++;
+    }
+    else {
+    	opts->outputFile = "";
     }
 
     opts->inputFile = *argv++;
@@ -76,7 +78,7 @@ std::pair<double, string> compare_image_files(PuzzleContext puzzle_context, Puzz
   return std::pair<double, std::string>(distance, file_name);
 }
 
-void print_results(ostream &output,multimap<double, std::string, std::less<double>> &results,Opts &opts)
+void print_results(ostream &output,multimap<double, std::string, std::less<double> > &results,Opts &opts)
 {
 	unsigned int count = 0;
 	std::multimap <double, std::string>::iterator it;
@@ -127,8 +129,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	cilk_for (unsigned int i = 0; i < opts.directory.size(); ++i) 
-	{
+	cilk_for (unsigned int i = 0; i < opts.directory.size(); ++i) {
 		std::string file_name = opts.directory[i];
 		std::pair<double, std::string> comparison_result = compare_image_files(puzzle_context, original_vector, comparison_vector, file_name);
 	    results.insert(comparison_result);
@@ -138,13 +139,15 @@ int main(int argc, char *argv[])
 	puzzle_free_context(&puzzle_context);
 	
 	// select output depending on execution arguments
-	if(opts.outputFile)
+	if (opts.outputFile != "")
 	{
-		of.open(opts.outputFile,ios::out);
-		print_results(of,results,opts);
+		of.open(opts.outputFile, ios::out);
+		print_results(of, results, opts);
 		of.close();
 	}
-	else
-		print_results(cout,results,opts);
+	else {
+		print_results(cout, results, opts);
+	}
+
 	return 0;
 }
