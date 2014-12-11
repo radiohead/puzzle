@@ -8,17 +8,17 @@ extern "C" {
 #include "listdir.hpp"
 #include "cilk/cilk.h"
 #include <iostream>
+#include <fstream>
 #include <map>
 
 using namespace std;
 
-typedef struct Opts_ {
-  std::vector <std::string> directory;
-
-  const char *inputFile;
+typedef struct Opts_ 
+{
+	std::vector <std::string> directory;
+	const char *inputFile;
     const char *outputFile;
     const char *dirName;
-
     double similarity_threshold;
 } Opts;
 
@@ -76,12 +76,43 @@ std::pair<double, string> compare_image_files(PuzzleContext puzzle_context, Puzz
   return std::pair<double, std::string>(distance, file_name);
 }
 
+void print_results(ostream &output,multimap<double, std::string, std::less<double>> &results,Opts &opts)
+{
+	unsigned int count = 0;
+	std::multimap <double, std::string>::iterator it;
+
+	output << endl << "*** Pictures found to be similar to "<< opts.inputFile << " ***" << endl;
+
+	for (it = results.begin(); it != results.end(); ++it)
+	{
+	  if (count > 10) 
+		  break;
+	  output << (*it).first << ' ' << (*it).second << endl;
+	  ++count;
+	}
+
+	count = 0;
+	output << endl << "*** Pictures found to be identical/close resemblance to "<< opts.inputFile << " ***" << endl;
+
+	for (it = results.begin(); it != results.end(); ++it) 
+	{
+	  if (count > 10)
+		  break;
+	  if ((*it).first <= 0.12) 
+	  {
+		output << (*it).first << ' ' << (*it).second << endl;
+		++count;
+	  }
+	}
+}
+
 int main(int argc, char *argv[])
 {
     Opts opts;
     PuzzleContext puzzle_context;
     PuzzleCvec original_vector, comparison_vector;
     std::multimap <double, std::string, std::less<double> > results;
+	ofstream of;
 
     puzzle_init_context(&puzzle_context);
 
@@ -96,7 +127,8 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	cilk_for (unsigned int i = 0; i < opts.directory.size(); ++i) {
+	cilk_for (unsigned int i = 0; i < opts.directory.size(); ++i) 
+	{
 		std::string file_name = opts.directory[i];
 		std::pair<double, std::string> comparison_result = compare_image_files(puzzle_context, original_vector, comparison_vector, file_name);
 	    results.insert(comparison_result);
@@ -104,28 +136,15 @@ int main(int argc, char *argv[])
 
 	puzzle_free_cvec(&puzzle_context, &original_vector);
 	puzzle_free_context(&puzzle_context);
-
-	unsigned int count = 0;
-	std::multimap <double, std::string>::iterator it;
-	cout << endl << "*** Pictures found to be similar to "<< opts.inputFile << " ***" << endl;
-
-	for (it = results.begin(); it != results.end(); ++it) {
-	  if (count > 10) break;
-	  cout << (*it).first << ' ' << (*it).second << endl;
-	  ++count;
+	
+	// select output depending on execution arguments
+	if(opts.outputFile)
+	{
+		of.open(opts.outputFile,ios::out);
+		print_results(of,results,opts);
+		of.close();
 	}
-
-	count = 0;
-	cout << endl << "*** Pictures found to be identical/close resemblance to "<< opts.inputFile << " ***" << endl;
-
-	for (it = results.begin(); it != results.end(); ++it) {
-	  if (count > 10) break;
-
-	  if ((*it).first <= 0.12) {
-		cout << (*it).first << ' ' << (*it).second << endl;
-		++count;
-	  }
-	}
-
+	else
+		print_results(cout,results,opts);
 	return 0;
 }
